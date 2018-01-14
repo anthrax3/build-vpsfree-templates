@@ -1,6 +1,5 @@
 DISTNAME=nixos
-CHANNEL=unstable
-#CHANNEL=16.09
+CHANNEL=17.09
 
 . $INCLUDE/nixos.sh
 
