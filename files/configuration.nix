@@ -15,6 +15,7 @@ with pkgs.lib;
 
     services.openssh.enable = true;
     services.openssh.permitRootLogin = "yes";
+    services.openssh.startWhenNeeded = false;
 
     networking = {
       hostName = "nixos";
@@ -32,7 +33,7 @@ with pkgs.lib;
           symlink = "/init";
         }
         { object = config.system.build.toplevel + "/init";
-          symlink = "/bin/init";
+          symlink = "/sbin/init";
         }
         { object = config.system.build.toplevel;
           symlink = "/run/current-system";
@@ -80,10 +81,8 @@ with pkgs.lib;
 
     environment.systemPackages = [ pkgs.nvi ];
 
-    # Install new init script(s), takes care of switching symlinks when e.g. nixos-rebuild switch(ing)
     system.activationScripts.installInitScript = ''
-      ln -fs $systemConfig/init /init
-      ln -fs $systemConfig/init /bin/init
+      ln -fs $systemConfig/init /sbin/init
     '';
 
     systemd.services."getty@".enable = false;
@@ -109,4 +108,26 @@ with pkgs.lib;
     systemd.services.systemd-journald.serviceConfig.MemoryDenyWriteExecute = false;
     systemd.services.systemd-logind.serviceConfig.SystemCallFilter = "";
     systemd.services.systemd-logind.serviceConfig.MemoryDenyWriteExecute = false;
+
+    nix.package = (import (pkgs.fetchFromGitHub {
+        owner = "NixOS";
+        repo = "nixpkgs";
+        rev = "300fa462b31ad2106d37fcdb4b504ec60dfd62aa";
+        sha256 = "1cbjmi34ll5xa2nafz0jlsciivj62mq78qr3zl4skgdk6scl328s";
+    }) {}).nix;
+
+    nixpkgs.config.packageOverrides = super:
+        let systemdGperfCompat = super.systemd.override { gperf = super.gperf_3_0; };
+        in {
+          systemd = systemdGperfCompat.overrideAttrs ( oldAttrs: rec {
+            version = "232";
+            name = "systemd-${version}";
+            src = pkgs.fetchFromGitHub {
+              owner = "nixos";
+              repo = "systemd";
+              rev = "66e778e851440fde7f20cff0c24d23538144be8d";
+              sha256 = "1valz8v2q4cj0ipz2b6mh5p0rjxpy3m88gg9xa2rcc4gcmscndzk";
+            };
+          });
+    };
 }
