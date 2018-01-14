@@ -13,8 +13,8 @@ bootstrap-nix() {
         useradd -c "Nix build user $n" \
                 -d /var/empty -g nixbld -G nixbld -M -N -r -s "$(which nologin)" nixbld$n;
     done
-    mkdir /nix
-    chown -R nix /nix
+    mkdir -p /nix /home/nix
+    chown -R nix /nix /home/nix
     su -c "bash <(curl https://nixos.org/nix/install)" nix
     # source nix env
     . ~nix/.nix-profile/etc/profile.d/nix.sh
