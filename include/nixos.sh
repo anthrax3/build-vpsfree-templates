@@ -7,17 +7,13 @@ prepare-fedora() {
 bootstrap-nix() {
     type dnf &>/dev/null && prepare-fedora
 
-    useradd nix
     groupadd -r nixbld
     for n in $(seq 1 10); do
         useradd -c "Nix build user $n" \
                 -d /var/empty -g nixbld -G nixbld -M -N -r -s "$(which nologin)" nixbld$n;
     done
-    mkdir -p /nix /home/nix
-    chown -R nix /nix /home/nix
-    su -c "bash <(curl https://nixos.org/nix/install)" nix
-    # source nix env
-    . ~nix/.nix-profile/etc/profile.d/nix.sh
+	curl https://nixos.org/releases/nix/nix-1.11.9/nix-1.11.9-x86_64-linux.tar.bz2 | tar x
+	nix-1.11.9-x86_64-linux/install
 }
 
 add-channels() {
